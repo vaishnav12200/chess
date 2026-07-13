@@ -28,7 +28,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   List<Square> _legalMoves = [];
   final List<ChessGameState> _history = [];
   int _historyIndex = 0;
-  bool _isFlipped = false;
 
   // Player info
   final String _whitePlayerName = 'Player1';
