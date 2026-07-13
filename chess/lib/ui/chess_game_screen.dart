@@ -16,7 +16,14 @@ import 'bottom_nav_bar.dart';
 import 'promotion_dialog.dart';
 
 class ChessGameScreen extends StatefulWidget {
-  const ChessGameScreen({super.key});
+  final int timeControl; // in minutes
+  final bool showDirectionHints;
+
+  const ChessGameScreen({
+    super.key,
+    required this.timeControl,
+    required this.showDirectionHints,
+  });
 
   @override
   State<ChessGameScreen> createState() => _ChessGameScreenState();

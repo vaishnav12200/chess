@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 class ChessBottomNavBar extends StatelessWidget {
-  final VoidCallback onOptions;
-  final VoidCallback onChat;
-  final VoidCallback onAnalyze;
   final VoidCallback onBack;
   final VoidCallback onForward;
   final bool canGoBack;
@@ -11,9 +8,6 @@ class ChessBottomNavBar extends StatelessWidget {
 
   const ChessBottomNavBar({
     super.key,
-    required this.onOptions,
-    required this.onChat,
-    required this.onAnalyze,
     required this.onBack,
     required this.onForward,
     this.canGoBack = false,
@@ -31,31 +25,17 @@ class ChessBottomNavBar extends StatelessWidget {
         ),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           _buildNavItem(
-            icon: Icons.settings,
-            label: 'Options',
-            onTap: onOptions,
-          ),
-          _buildNavItem(
-            icon: Icons.chat_bubble_outline,
-            label: 'Chat',
-            onTap: onChat,
-          ),
-          _buildNavItem(
-            icon: Icons.analytics,
-            label: 'Analyze',
-            onTap: onAnalyze,
-          ),
-          _buildNavItem(
             icon: Icons.arrow_back,
-            label: 'Back',
+            label: 'Undo',
             onTap: canGoBack ? onBack : null,
           ),
+          const SizedBox(width: 32),
           _buildNavItem(
             icon: Icons.arrow_forward,
-            label: 'Forward',
+            label: 'Redo',
             onTap: canGoForward ? onForward : null,
           ),
         ],
@@ -71,21 +51,22 @@ class ChessBottomNavBar extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               icon,
               color: onTap != null ? Colors.black87 : Colors.grey,
-              size: 24,
+              size: 28,
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 color: onTap != null ? Colors.black87 : Colors.grey,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
