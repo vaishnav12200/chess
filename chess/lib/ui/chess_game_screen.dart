@@ -131,6 +131,7 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
                 legalMoves: _legalMoves,
                 lastMove: lastMove,
                 onSquareTap: _onSquareTap,
+                showDirectionHints: widget.showDirectionHints,
               ),
             ),
           ),

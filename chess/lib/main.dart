@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'ui/chess_game_screen.dart';
+import 'ui/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.brown),
         useMaterial3: true,
       ),
-      home: const ChessGameScreen(),
+      home: const SplashScreen(),
     );
   }
 }

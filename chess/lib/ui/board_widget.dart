@@ -11,6 +11,7 @@ class BoardWidget extends StatelessWidget {
   final List<Square> legalMoves;
   final Move? lastMove;
   final Function(Square) onSquareTap;
+  final bool showDirectionHints;
 
   const BoardWidget({
     super.key,
@@ -19,6 +20,7 @@ class BoardWidget extends StatelessWidget {
     required this.legalMoves,
     required this.lastMove,
     required this.onSquareTap,
+    this.showDirectionHints = true,
   });
 
   @override
@@ -49,7 +51,7 @@ class BoardWidget extends StatelessWidget {
             final piece = gameState.board.getPiece(square);
             final isLight = (file + rank) % 2 == 0;
             final isSelected = selectedSquare == square;
-            final isLegalMove = legalMoves.contains(square);
+            final isLegalMove = showDirectionHints ? legalMoves.contains(square) : false;
             final isLastMoveFrom = lastMove?.from == square;
             final isLastMoveTo = lastMove?.to == square;
             
