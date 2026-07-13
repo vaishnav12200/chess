@@ -7,10 +7,12 @@ import '../types/square.dart';
 import '../types/move.dart';
 import '../types/piece_type.dart';
 import '../types/piece_color.dart';
+import '../types/piece.dart';
 import '../types/game_state.dart';
 import 'board_widget.dart';
-import 'game_controls.dart';
-import 'move_history_widget.dart';
+import 'player_info_panel.dart';
+import 'horizontal_move_history.dart';
+import 'bottom_nav_bar.dart';
 import 'promotion_dialog.dart';
 
 class ChessGameScreen extends StatefulWidget {

@@ -67,8 +67,8 @@ class _SquareWidgetState extends State<SquareWidget>
   @override
   Widget build(BuildContext context) {
     Color backgroundColor = widget.isLight
-        ? const Color(0xFFF0D9B5)
-        : const Color(0xFFB58863);
+        ? const Color(0xFFE8C39E)
+        : const Color(0xFF8B6914);
 
     // Highlight selected square
     if (widget.isSelected) {
@@ -132,8 +132,9 @@ class _SquareWidgetState extends State<SquareWidget>
                 child: Text(
                   '${widget.square.rank + 1}',
                   style: TextStyle(
-                    fontSize: 10,
-                    color: widget.isLight ? Colors.black54 : Colors.white54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isLight ? Colors.black87 : Colors.white,
                   ),
                 ),
               ),
@@ -144,8 +145,9 @@ class _SquareWidgetState extends State<SquareWidget>
                 child: Text(
                   String.fromCharCode(97 + widget.square.file),
                   style: TextStyle(
-                    fontSize: 10,
-                    color: widget.isLight ? Colors.black54 : Colors.white54,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: widget.isLight ? Colors.black87 : Colors.white,
                   ),
                 ),
               ),
