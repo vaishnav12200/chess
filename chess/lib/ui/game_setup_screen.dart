@@ -64,7 +64,8 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                   showPieceDirection = value;
                 });
               },
-              activeColor: Colors.brown[700],
+              activeTrackColor: Colors.brown[200],
+              activeThumbColor: Colors.brown[700],
             ),
             const Spacer(),
             // Play button
