@@ -30,6 +30,17 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   int _historyIndex = 0;
   bool _isFlipped = false;
 
+  // Player info
+  final String _whitePlayerName = 'Player1';
+  final int _whitePlayerRating = 1500;
+  final String _whitePlayerCountry = 'IN';
+  final String _whitePlayerTime = '10:00';
+
+  final String _blackPlayerName = 'Player2';
+  final int _blackPlayerRating = 1450;
+  final String _blackPlayerCountry = 'IN';
+  final String _blackPlayerTime = '10:00';
+
   @override
   void initState() {
     super.initState();
@@ -46,83 +57,60 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
     final gameStatus = GameStateDetector.detectGameState(gameState);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Chess'),
-        centerTitle: true,
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        actions: [
-          _buildTurnIndicator(gameState),
-          const SizedBox(width: 16),
-        ],
-      ),
+      backgroundColor: Colors.white,
       body: gameStatus.isGameOver
           ? _buildGameOverScreen(gameStatus)
           : _buildGameScreen(gameState, lastMove),
     );
   }
 
-  Widget _buildTurnIndicator(ChessGameState gameState) {
-    return Row(
-      children: [
-        Icon(
-          gameState.currentTurn == PieceColor.white
-              ? Icons.circle
-              : Icons.circle_outlined,
-          color: gameState.currentTurn == PieceColor.white
-              ? Colors.white
-              : Colors.black,
-        ),
-        const SizedBox(width: 8),
-        Text(
-          gameState.currentTurn == PieceColor.white ? 'White' : 'Black',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-      ],
-    );
-  }
-
   Widget _buildGameScreen(ChessGameState gameState, Move? lastMove) {
     return Column(
       children: [
+        // Top player info (Black)
+        PlayerInfoPanel(
+          name: _blackPlayerName,
+          rating: _blackPlayerRating,
+          countryCode: _blackPlayerCountry,
+          capturedPieces: _getCapturedPieces(gameState, PieceColor.black),
+          timeRemaining: _blackPlayerTime,
+          isTop: true,
+        ),
+        // Horizontal move history
+        HorizontalMoveHistory(gameState: gameState),
+        // Chess board
         Expanded(
-          child: Row(
-            children: [
-              // Board
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: BoardWidget(
-                    gameState: gameState,
-                    selectedSquare: _selectedSquare,
-                    legalMoves: _legalMoves,
-                    lastMove: lastMove,
-                    onSquareTap: _onSquareTap,
-                  ),
-                ),
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: BoardWidget(
+                gameState: gameState,
+                selectedSquare: _selectedSquare,
+                legalMoves: _legalMoves,
+                lastMove: lastMove,
+                onSquareTap: _onSquareTap,
               ),
-              // Move history
-              Expanded(
-                flex: 1,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: MoveHistoryWidget(gameState: gameState),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-        // Game controls
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: GameControls(
-            onNewGame: _newGame,
-            onUndo: _undo,
-            onRedo: _redo,
-            onFlipBoard: _flipBoard,
-            canUndo: _historyIndex > 0,
-            canRedo: _historyIndex < _history.length - 1,
-          ),
+        // Bottom player info (White)
+        PlayerInfoPanel(
+          name: _whitePlayerName,
+          rating: _whitePlayerRating,
+          countryCode: _whitePlayerCountry,
+          capturedPieces: _getCapturedPieces(gameState, PieceColor.white),
+          timeRemaining: _whitePlayerTime,
+          isTop: false,
+        ),
+        // Bottom navigation bar
+        ChessBottomNavBar(
+          onOptions: () {},
+          onChat: () {},
+          onAnalyze: () {},
+          onBack: _undo,
+          onForward: _redo,
+          canGoBack: _historyIndex > 0,
+          canGoForward: _historyIndex < _history.length - 1,
         ),
       ],
     );
@@ -315,5 +303,11 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
     setState(() {
       _isFlipped = !_isFlipped;
     });
+  }
+
+  List<Piece> _getCapturedPieces(ChessGameState state, PieceColor color) {
+    // Get pieces captured by this color (opponent's pieces that were captured)
+    final opponentColor = color.opposite;
+    return state.capturedPieces.where((p) => p.color == opponentColor).toList();
   }
 }
