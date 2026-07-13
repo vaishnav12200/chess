@@ -3,7 +3,7 @@ import '../types/square.dart';
 import '../types/piece.dart';
 import 'piece_widget.dart';
 
-class SquareWidget extends StatelessWidget {
+class SquareWidget extends StatefulWidget {
   final Square square;
   final Piece? piece;
   final bool isLight;
@@ -28,20 +28,57 @@ class SquareWidget extends StatelessWidget {
   });
 
   @override
+  State<SquareWidget> createState() => _SquareWidgetState();
+}
+
+class _SquareWidgetState extends State<SquareWidget>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void didUpdateWidget(SquareWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.piece != widget.piece && widget.piece != null) {
+      _animationController.reset();
+      _animationController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    Color backgroundColor = isLight
+    Color backgroundColor = widget.isLight
         ? const Color(0xFFF0D9B5)
         : const Color(0xFFB58863);
 
     // Highlight selected square
-    if (isSelected) {
+    if (widget.isSelected) {
       backgroundColor = const Color(0xFFBACA44);
     }
 
     // Highlight last move
-    if (isLastMoveFrom || isLastMoveTo) {
+    if (widget.isLastMoveFrom || widget.isLastMoveTo) {
       backgroundColor = backgroundColor.withOpacity(0.8);
-      if (isLight) {
+      if (widget.isLight) {
         backgroundColor = const Color(0xFFF0F0F0);
       } else {
         backgroundColor = const Color(0xFFAAAAAA);
@@ -49,12 +86,12 @@ class SquareWidget extends StatelessWidget {
     }
 
     // Highlight check
-    if (isInCheck) {
+    if (widget.isInCheck) {
       backgroundColor = const Color(0xFFFF6B6B);
     }
 
     return GestureDetector(
-      onTap: onTap,
+      onTap: widget.onTap,
       child: Container(
         decoration: BoxDecoration(
           color: backgroundColor,
@@ -66,18 +103,21 @@ class SquareWidget extends StatelessWidget {
         child: Stack(
           children: [
             // Piece
-            if (piece != null)
+            if (widget.piece != null)
               Center(
-                child: PieceWidget(piece: piece!),
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: PieceWidget(piece: widget.piece!),
+                ),
               ),
             // Legal move indicator
-            if (isLegalMove)
+            if (widget.isLegalMove)
               Center(
                 child: Container(
                   width: 16,
                   height: 16,
                   decoration: BoxDecoration(
-                    color: piece != null
+                    color: widget.piece != null
                         ? Colors.black.withOpacity(0.3)
                         : Colors.black.withOpacity(0.2),
                     shape: BoxShape.circle,
@@ -85,27 +125,27 @@ class SquareWidget extends StatelessWidget {
                 ),
               ),
             // Coordinate labels (only on edge squares)
-            if (square.file == 0)
+            if (widget.square.file == 0)
               Positioned(
                 top: 2,
                 left: 2,
                 child: Text(
-                  '${square.rank + 1}',
+                  '${widget.square.rank + 1}',
                   style: TextStyle(
                     fontSize: 10,
-                    color: isLight ? Colors.black54 : Colors.white54,
+                    color: widget.isLight ? Colors.black54 : Colors.white54,
                   ),
                 ),
               ),
-            if (square.rank == 0)
+            if (widget.square.rank == 0)
               Positioned(
                 bottom: 2,
                 right: 2,
                 child: Text(
-                  String.fromCharCode(97 + square.file),
+                  String.fromCharCode(97 + widget.square.file),
                   style: TextStyle(
                     fontSize: 10,
-                    color: isLight ? Colors.black54 : Colors.white54,
+                    color: widget.isLight ? Colors.black54 : Colors.white54,
                   ),
                 ),
               ),
