@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'chess_game_screen.dart';
 
 class GameSetupScreen extends StatefulWidget {
-  const GameSetupScreen({super.key});
+  final String whitePlayerName;
+  final String blackPlayerName;
+
+  const GameSetupScreen({
+    super.key,
+    this.whitePlayerName = 'Player 1',
+    this.blackPlayerName = 'Player 2',
+  });
 
   @override
   State<GameSetupScreen> createState() => _GameSetupScreenState();
@@ -77,6 +84,8 @@ class _GameSetupScreenState extends State<GameSetupScreen> {
                     builder: (context) => ChessGameScreen(
                       timeControl: selectedTime,
                       showDirectionHints: showPieceDirection,
+                      whitePlayerName: widget.whitePlayerName,
+                      blackPlayerName: widget.blackPlayerName,
                     ),
                   ),
                 );
