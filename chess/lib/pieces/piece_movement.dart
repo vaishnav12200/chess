@@ -28,7 +28,6 @@ class PawnMovement {
     final moves = <Square>[];
     final direction = piece.color == PieceColor.white ? 1 : -1;
     final startRank = piece.color == PieceColor.white ? 1 : 6;
-    final promotionRank = piece.color == PieceColor.white ? 7 : 0;
 
     // Forward move
     final forward = Square(square.file, square.rank + direction);

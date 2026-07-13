@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../types/piece_type.dart';
 import '../types/piece_color.dart';
+import '../types/piece.dart';
 import 'piece_widget.dart';
 
 class PromotionDialog extends StatelessWidget {
@@ -52,7 +53,7 @@ class _PromotionOption extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: PieceWidget(
-          piece: Piece(type: pieceType, color: PieceColor.white),
+          piece: const Piece(type: PieceType.queen, color: PieceColor.white).copyWith(type: pieceType),
           size: 48,
         ),
       ),

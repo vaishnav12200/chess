@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../engine/game_state.dart';
 import '../rules/move_validator.dart';
 import '../types/square.dart';
+import '../types/move.dart';
 import 'square_widget.dart';
 
 class BoardWidget extends StatelessWidget {
@@ -37,7 +38,7 @@ class BoardWidget extends StatelessWidget {
         ),
         child: GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossCountCount(
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 8,
           ),
           itemCount: 64,

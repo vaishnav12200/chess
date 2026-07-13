@@ -68,7 +68,7 @@ class SquareWidget extends StatelessWidget {
             // Piece
             if (piece != null)
               Center(
-                child: PieceWidget(piece: piece),
+                child: PieceWidget(piece: piece!),
               ),
             // Legal move indicator
             if (isLegalMove)

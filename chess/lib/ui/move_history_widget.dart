@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../engine/game_state.dart';
 import '../engine/move_executor.dart';
+import '../types/move.dart';
 import '../utils/move_notation.dart';
 
 class MoveHistoryWidget extends StatelessWidget {

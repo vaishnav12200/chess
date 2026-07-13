@@ -1,4 +1,3 @@
-import '../board/board.dart';
 import '../engine/game_state.dart';
 import '../engine/move_executor.dart';
 import '../rules/move_validator.dart';
@@ -7,6 +6,7 @@ import '../types/move.dart';
 import '../types/piece_type.dart';
 import '../types/piece_color.dart';
 import '../types/game_state.dart';
+import '../types/square.dart';
 
 class MoveNotation {
   static String toNotation(ChessGameState state, Move move) {
@@ -93,7 +93,7 @@ class MoveNotation {
         if (candidate != null && 
             candidate.type == piece.type && 
             candidate.color == color &&
-            square != move.from) {
+            (square.file != move.from.file || square.rank != move.from.rank)) {
           
           // Check if this piece can also move to the target
           // Simplified check - in a full implementation, we'd use the move validator

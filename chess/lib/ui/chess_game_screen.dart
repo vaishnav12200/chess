@@ -7,6 +7,8 @@ import '../types/square.dart';
 import '../types/move.dart';
 import '../types/piece_type.dart';
 import '../types/piece_color.dart';
+import '../types/piece.dart';
+import '../types/game_state.dart';
 import 'board_widget.dart';
 import 'game_controls.dart';
 import 'move_history_widget.dart';
@@ -192,7 +194,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
 
   void _onSquareTap(Square square) {
     final gameState = _history[_historyIndex];
-    final piece = gameState.board.getPiece(square);
 
     // If a piece is selected and user taps a legal move
     if (_selectedSquare != null && _legalMoves.contains(square)) {
@@ -200,6 +201,7 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
       return;
     }
 
+    final piece = gameState.board.getPiece(square);
     // If tapping on own piece, select it
     if (piece != null && piece.color == gameState.currentTurn) {
       setState(() {

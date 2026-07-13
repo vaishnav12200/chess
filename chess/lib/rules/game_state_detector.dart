@@ -1,8 +1,11 @@
+import '../board/board.dart';
 import '../engine/game_state.dart';
+import '../engine/move_executor.dart';
 import '../rules/move_validator.dart';
 import '../types/game_state.dart';
 import '../types/piece_color.dart';
 import '../types/piece_type.dart';
+import '../types/square.dart';
 
 class GameStateDetector {
   static GameState detectGameState(ChessGameState state) {

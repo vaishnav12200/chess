@@ -1,6 +1,7 @@
 import '../board/board.dart';
 import '../engine/game_state.dart';
 import '../pieces/piece_movement.dart';
+import '../types/piece.dart';
 import '../types/piece_color.dart';
 import '../types/square.dart';
 import '../types/move.dart';
