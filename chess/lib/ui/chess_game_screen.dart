@@ -299,12 +299,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
     }
   }
 
-  void _flipBoard() {
-    setState(() {
-      _isFlipped = !_isFlipped;
-    });
-  }
-
   List<Piece> _getCapturedPieces(ChessGameState state, PieceColor color) {
     // Get pieces captured by this color (opponent's pieces that were captured)
     final opponentColor = color.opposite;

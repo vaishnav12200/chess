@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../types/piece.dart';
-import '../types/piece_color.dart';
 import 'piece_widget.dart';
 
 class PlayerInfoPanel extends StatelessWidget {

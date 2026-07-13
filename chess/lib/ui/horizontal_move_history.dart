@@ -49,9 +49,7 @@ class HorizontalMoveHistory extends StatelessWidget {
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  whiteMove != null
-                      ? _getMoveNotation(gameState, whiteMove, index * 2)
-                      : '',
+                  _getMoveNotation(gameState, whiteMove, index * 2),
                   style: const TextStyle(fontSize: 12),
                 ),
                 if (blackMove != null) ...[
