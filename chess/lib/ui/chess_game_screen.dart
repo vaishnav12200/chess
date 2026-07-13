@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../engine/game_state.dart';
 import '../engine/move_executor.dart';
@@ -36,22 +37,57 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   final List<ChessGameState> _history = [];
   int _historyIndex = 0;
 
+  // Timer
+  late int _whiteTimeRemaining;
+  late int _blackTimeRemaining;
+  Timer? _timer;
+
   // Player info
   final String _whitePlayerName = 'Player1';
   final int _whitePlayerRating = 1500;
   final String _whitePlayerCountry = 'IN';
-  final String _whitePlayerTime = '10:00';
 
   final String _blackPlayerName = 'Player2';
   final int _blackPlayerRating = 1450;
   final String _blackPlayerCountry = 'IN';
-  final String _blackPlayerTime = '10:00';
 
   @override
   void initState() {
     super.initState();
     _gameState = ChessGameState.initial();
     _history.add(_gameState);
+    
+    // Initialize timers
+    _whiteTimeRemaining = widget.timeControl * 60;
+    _blackTimeRemaining = widget.timeControl * 60;
+    
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (mounted) {
+        setState(() {
+          if (_gameState.currentTurn == PieceColor.white) {
+            _whiteTimeRemaining--;
+          } else {
+            _blackTimeRemaining--;
+          }
+        });
+      }
+    });
+  }
+
+  String _formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final secs = seconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -79,7 +115,7 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
           rating: _blackPlayerRating,
           countryCode: _blackPlayerCountry,
           capturedPieces: _getCapturedPieces(gameState, PieceColor.black),
-          timeRemaining: _blackPlayerTime,
+          timeRemaining: _formatTime(_blackTimeRemaining),
           isTop: true,
         ),
         // Horizontal move history
@@ -105,14 +141,11 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
           rating: _whitePlayerRating,
           countryCode: _whitePlayerCountry,
           capturedPieces: _getCapturedPieces(gameState, PieceColor.white),
-          timeRemaining: _whitePlayerTime,
+          timeRemaining: _formatTime(_whiteTimeRemaining),
           isTop: false,
         ),
         // Bottom navigation bar
         ChessBottomNavBar(
-          onOptions: () {},
-          onChat: () {},
-          onAnalyze: () {},
           onBack: _undo,
           onForward: _redo,
           canGoBack: _historyIndex > 0,
@@ -222,6 +255,18 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
         .where((move) => move.from == square)
         .map((move) => move.to)
         .toList();
+  }
+
+  @override
+  void didUpdateWidget(ChessGameScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Restart timer if time control changes
+    if (oldWidget.timeControl != widget.timeControl) {
+      _timer?.cancel();
+      _whiteTimeRemaining = widget.timeControl * 60;
+      _blackTimeRemaining = widget.timeControl * 60;
+      _startTimer();
+    }
   }
 
   Future<void> _makeMove(Square from, Square to) async {
