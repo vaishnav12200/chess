@@ -9,6 +9,7 @@ class PlayerInfoPanel extends StatelessWidget {
   final List<Piece> capturedPieces;
   final String timeRemaining;
   final bool isTop;
+  final bool isActive;
 
   const PlayerInfoPanel({
     super.key,
@@ -18,6 +19,7 @@ class PlayerInfoPanel extends StatelessWidget {
     required this.capturedPieces,
     required this.timeRemaining,
     required this.isTop,
+    this.isActive = false,
   });
 
   @override
@@ -97,14 +99,15 @@ class PlayerInfoPanel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.grey[200],
+              color: isActive ? Colors.brown[700] : Colors.grey[200],
               borderRadius: BorderRadius.circular(4),
             ),
             child: Text(
               timeRemaining,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
+                color: isActive ? Colors.white : Colors.black87,
               ),
             ),
           ),

@@ -19,11 +19,15 @@ import 'promotion_dialog.dart';
 class ChessGameScreen extends StatefulWidget {
   final int timeControl; // in minutes
   final bool showDirectionHints;
+  final String whitePlayerName;
+  final String blackPlayerName;
 
   const ChessGameScreen({
     super.key,
     required this.timeControl,
     required this.showDirectionHints,
+    this.whitePlayerName = 'Player 1',
+    this.blackPlayerName = 'Player 2',
   });
 
   @override
@@ -31,36 +35,25 @@ class ChessGameScreen extends StatefulWidget {
 }
 
 class _ChessGameScreenState extends State<ChessGameScreen> {
-  late ChessGameState _gameState;
-  Square? _selectedSquare;
-  List<Square> _legalMoves = [];
   final List<ChessGameState> _history = [];
   int _historyIndex = 0;
+  Square? _selectedSquare;
+  List<Square> _legalMoves = [];
 
-  // Timer
   late int _whiteTimeRemaining;
   late int _blackTimeRemaining;
   Timer? _timer;
+  // null = no timeout loss yet; PieceColor = who lost on time
+  PieceColor? _timeoutLoser;
 
-  // Player info
-  final String _whitePlayerName = 'Player1';
-  final int _whitePlayerRating = 1500;
-  final String _whitePlayerCountry = 'IN';
-
-  final String _blackPlayerName = 'Player2';
-  final int _blackPlayerRating = 1450;
-  final String _blackPlayerCountry = 'IN';
+  ChessGameState get _currentState => _history[_historyIndex];
 
   @override
   void initState() {
     super.initState();
-    _gameState = ChessGameState.initial();
-    _history.add(_gameState);
-    
-    // Initialize timers
+    _history.add(ChessGameState.initial());
     _whiteTimeRemaining = widget.timeControl * 60;
     _blackTimeRemaining = widget.timeControl * 60;
-    
     _startTimer();
   }
 
@@ -71,56 +64,81 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (mounted) {
-        setState(() {
-          if (_gameState.currentTurn == PieceColor.white) {
-            _whiteTimeRemaining--;
-          } else {
-            _blackTimeRemaining--;
-          }
-        });
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final gameStatus = GameStateDetector.detectGameState(_currentState);
+      if (gameStatus.isGameOver || _timeoutLoser != null) {
+        _timer?.cancel();
+        return;
       }
+      setState(() {
+        if (_currentState.currentTurn == PieceColor.white) {
+          _whiteTimeRemaining--;
+          if (_whiteTimeRemaining <= 0) {
+            _whiteTimeRemaining = 0;
+            _handleTimeout(PieceColor.white);
+          }
+        } else {
+          _blackTimeRemaining--;
+          if (_blackTimeRemaining <= 0) {
+            _blackTimeRemaining = 0;
+            _handleTimeout(PieceColor.black);
+          }
+        }
+      });
     });
   }
 
+  void _handleTimeout(PieceColor loser) {
+    _timer?.cancel();
+    // Draw if opponent has insufficient material to mate
+    final winner = loser == PieceColor.white ? PieceColor.black : PieceColor.white;
+    final opponentPieces = _currentState.board.getPieces(winner);
+    final isInsufficient = opponentPieces.length == 1; // only king
+    if (isInsufficient) {
+      // Draw — don't set a loser, show draw message via a flag
+      setState(() => _timeoutLoser = loser); // reuse flag; handle in UI
+    } else {
+      setState(() => _timeoutLoser = loser);
+    }
+  }
+
   String _formatTime(int seconds) {
-    final minutes = seconds ~/ 60;
-    final secs = seconds % 60;
-    return '${minutes.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
   }
 
   @override
   Widget build(BuildContext context) {
-    final gameState = _history[_historyIndex];
-    final lastMove = gameState.moveHistory.isNotEmpty
-        ? gameState.moveHistory.last
-        : null;
-    final gameStatus = GameStateDetector.detectGameState(gameState);
+    final lastMove =
+        _currentState.moveHistory.isNotEmpty ? _currentState.moveHistory.last : null;
+    final gameStatus = GameStateDetector.detectGameState(_currentState);
+    final isOver = gameStatus.isGameOver || _timeoutLoser != null;
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: gameStatus.isGameOver
+      body: isOver
           ? _buildGameOverScreen(gameStatus)
-          : _buildGameScreen(gameState, lastMove),
+          : _buildGameScreen(_currentState, lastMove),
     );
   }
 
   Widget _buildGameScreen(ChessGameState gameState, Move? lastMove) {
+    final isWhiteTurn = gameState.currentTurn == PieceColor.white;
     return Column(
       children: [
-        // Top player info (Black)
         PlayerInfoPanel(
-          name: _blackPlayerName,
-          rating: _blackPlayerRating,
-          countryCode: _blackPlayerCountry,
+          name: widget.blackPlayerName,
+          rating: 0,
+          countryCode: '',
           capturedPieces: _getCapturedPieces(gameState, PieceColor.black),
           timeRemaining: _formatTime(_blackTimeRemaining),
           isTop: true,
+          isActive: !isWhiteTurn,
         ),
-        // Horizontal move history
         HorizontalMoveHistory(gameState: gameState),
-        // Chess board
         Expanded(
           child: Center(
             child: Padding(
@@ -136,16 +154,15 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
             ),
           ),
         ),
-        // Bottom player info (White)
         PlayerInfoPanel(
-          name: _whitePlayerName,
-          rating: _whitePlayerRating,
-          countryCode: _whitePlayerCountry,
+          name: widget.whitePlayerName,
+          rating: 0,
+          countryCode: '',
           capturedPieces: _getCapturedPieces(gameState, PieceColor.white),
           timeRemaining: _formatTime(_whiteTimeRemaining),
           isTop: false,
+          isActive: isWhiteTurn,
         ),
-        // Bottom navigation bar
         ChessBottomNavBar(
           onBack: _undo,
           onForward: _redo,
@@ -160,30 +177,48 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
     String message;
     Color color;
 
-    switch (gameStatus.status) {
-      case GameStatus.checkmate:
-        message = 'Checkmate! ${gameStatus.winner} wins!';
+    if (_timeoutLoser != null) {
+      final opponentPieces = _currentState.board
+          .getPieces(_timeoutLoser == PieceColor.white ? PieceColor.black : PieceColor.white);
+      if (opponentPieces.length == 1) {
+        message = 'Draw — insufficient material to win on time.';
+        color = Colors.orange;
+      } else {
+        final winnerName = _timeoutLoser == PieceColor.white
+            ? widget.blackPlayerName
+            : widget.whitePlayerName;
+        message = '$winnerName wins on time!';
         color = Colors.green;
-        break;
-      case GameStatus.stalemate:
-        message = 'Stalemate! Draw.';
-        color = Colors.orange;
-        break;
-      case GameStatus.drawByInsufficientMaterial:
-        message = 'Draw by insufficient material.';
-        color = Colors.orange;
-        break;
-      case GameStatus.drawByFiftyMoveRule:
-        message = 'Draw by fifty-move rule.';
-        color = Colors.orange;
-        break;
-      case GameStatus.drawByThreefoldRepetition:
-        message = 'Draw by threefold repetition.';
-        color = Colors.orange;
-        break;
-      default:
-        message = 'Game Over';
-        color = Colors.grey;
+      }
+    } else {
+      switch (gameStatus.status) {
+        case GameStatus.checkmate:
+          final winnerName = gameStatus.winner == 'White'
+              ? widget.whitePlayerName
+              : widget.blackPlayerName;
+          message = 'Checkmate! $winnerName wins!';
+          color = Colors.green;
+          break;
+        case GameStatus.stalemate:
+          message = 'Stalemate! Draw.';
+          color = Colors.orange;
+          break;
+        case GameStatus.drawByInsufficientMaterial:
+          message = 'Draw by insufficient material.';
+          color = Colors.orange;
+          break;
+        case GameStatus.drawByFiftyMoveRule:
+          message = 'Draw by fifty-move rule.';
+          color = Colors.orange;
+          break;
+        case GameStatus.drawByThreefoldRepetition:
+          message = 'Draw by threefold repetition.';
+          color = Colors.orange;
+          break;
+        default:
+          message = 'Game Over';
+          color = Colors.grey;
+      }
     }
 
     return Center(
@@ -199,11 +234,7 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
             ),
             child: Text(
               message,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
               textAlign: TextAlign.center,
             ),
           ),
@@ -222,16 +253,12 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   }
 
   void _onSquareTap(Square square) {
-    final gameState = _history[_historyIndex];
-
-    // If a piece is selected and user taps a legal move
+    final gameState = _currentState;
     if (_selectedSquare != null && _legalMoves.contains(square)) {
       _makeMove(_selectedSquare!, square);
       return;
     }
-
     final piece = gameState.board.getPiece(square);
-    // If tapping on own piece, select it
     if (piece != null && piece.color == gameState.currentTurn) {
       setState(() {
         _selectedSquare = square;
@@ -239,8 +266,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
       });
       return;
     }
-
-    // Deselect
     setState(() {
       _selectedSquare = null;
       _legalMoves = [];
@@ -248,36 +273,19 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   }
 
   List<Square> _getLegalMovesForSquare(ChessGameState state, Square square) {
-    final piece = state.board.getPiece(square);
-    if (piece == null) return [];
-
-    final allLegalMoves = MoveValidator.getLegalMoves(state);
-    return allLegalMoves
-        .where((move) => move.from == square)
-        .map((move) => move.to)
+    if (state.board.getPiece(square) == null) return [];
+    return MoveValidator.getLegalMoves(state)
+        .where((m) => m.from == square)
+        .map((m) => m.to)
         .toList();
   }
 
-  @override
-  void didUpdateWidget(ChessGameScreen oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Restart timer if time control changes
-    if (oldWidget.timeControl != widget.timeControl) {
-      _timer?.cancel();
-      _whiteTimeRemaining = widget.timeControl * 60;
-      _blackTimeRemaining = widget.timeControl * 60;
-      _startTimer();
-    }
-  }
-
   Future<void> _makeMove(Square from, Square to) async {
-    final gameState = _history[_historyIndex];
-    final allLegalMoves = MoveValidator.getLegalMoves(gameState);
-    final move = allLegalMoves.firstWhere(
-      (m) => m.from == from && m.to == to,
-    );
+    final gameState = _currentState;
+    final move = MoveValidator.getLegalMoves(gameState)
+        .firstWhere((m) => m.from == from && m.to == to);
 
-    // Handle promotion
+    ChessGameState newState;
     if (move.type == MoveType.promotion) {
       final promotionPiece = await _showPromotionDialog();
       if (promotionPiece == null) {
@@ -287,48 +295,39 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
         });
         return;
       }
-
-      final promotionMove = move.copyWith(promotionPiece: promotionPiece);
-      final newState = MoveExecutor.executeMove(gameState, promotionMove);
-      _updateHistory(newState);
+      newState = MoveExecutor.executeMove(gameState, move.copyWith(promotionPiece: promotionPiece));
     } else {
-      final newState = MoveExecutor.executeMove(gameState, move);
-      _updateHistory(newState);
+      newState = MoveExecutor.executeMove(gameState, move);
     }
 
     setState(() {
-      _selectedSquare = null;
-      _legalMoves = [];
-    });
-  }
-
-  Future<PieceType?> _showPromotionDialog() async {
-    return showDialog<PieceType>(
-      context: context,
-      builder: (context) => const PromotionDialog(),
-    );
-  }
-
-  void _updateHistory(ChessGameState newState) {
-    setState(() {
-      // Remove any future states if we're not at the end
       if (_historyIndex < _history.length - 1) {
         _history.removeRange(_historyIndex + 1, _history.length);
       }
       _history.add(newState);
       _historyIndex = _history.length - 1;
-    });
-  }
-
-  void _newGame() {
-    setState(() {
-      _gameState = ChessGameState.initial();
-      _history.clear();
-      _history.add(_gameState);
-      _historyIndex = 0;
       _selectedSquare = null;
       _legalMoves = [];
     });
+  }
+
+  Future<PieceType?> _showPromotionDialog() =>
+      showDialog<PieceType>(context: context, builder: (_) => const PromotionDialog());
+
+  void _newGame() {
+    _timer?.cancel();
+    setState(() {
+      _history
+        ..clear()
+        ..add(ChessGameState.initial());
+      _historyIndex = 0;
+      _selectedSquare = null;
+      _legalMoves = [];
+      _whiteTimeRemaining = widget.timeControl * 60;
+      _blackTimeRemaining = widget.timeControl * 60;
+      _timeoutLoser = null;
+    });
+    _startTimer();
   }
 
   void _undo() {
@@ -352,8 +351,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
   }
 
   List<Piece> _getCapturedPieces(ChessGameState state, PieceColor color) {
-    // Get pieces captured by this color (opponent's pieces that were captured)
-    final opponentColor = color.opposite;
-    return state.capturedPieces.where((p) => p.color == opponentColor).toList();
+    return state.capturedPieces.where((p) => p.color == color.opposite).toList();
   }
 }
