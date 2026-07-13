@@ -4,7 +4,6 @@ import '../rules/move_validator.dart';
 import '../rules/game_state_detector.dart';
 import '../types/move.dart';
 import '../types/piece_type.dart';
-import '../types/piece_color.dart';
 import '../types/game_state.dart';
 import '../types/square.dart';
 

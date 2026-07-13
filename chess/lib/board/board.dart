@@ -1,5 +1,6 @@
 import '../types/piece.dart';
 import '../types/piece_color.dart';
+import '../types/piece_type.dart';
 import '../types/square.dart';
 
 class Board {

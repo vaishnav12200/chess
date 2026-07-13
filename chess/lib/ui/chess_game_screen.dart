@@ -7,7 +7,6 @@ import '../types/square.dart';
 import '../types/move.dart';
 import '../types/piece_type.dart';
 import '../types/piece_color.dart';
-import '../types/piece.dart';
 import '../types/game_state.dart';
 import 'board_widget.dart';
 import 'game_controls.dart';
@@ -231,7 +230,6 @@ class _ChessGameScreenState extends State<ChessGameScreen> {
 
   Future<void> _makeMove(Square from, Square to) async {
     final gameState = _history[_historyIndex];
-    final piece = gameState.board.getPiece(from)!;
     final allLegalMoves = MoveValidator.getLegalMoves(gameState);
     final move = allLegalMoves.firstWhere(
       (m) => m.from == from && m.to == to,
