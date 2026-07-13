@@ -63,9 +63,7 @@ class MoveHistoryWidget extends StatelessWidget {
                         ),
                         Expanded(
                           child: Text(
-                            whiteMove != null
-                                ? _getMoveNotation(gameState, whiteMove, index * 2)
-                                : '',
+                            _getMoveNotation(gameState, whiteMove, index * 2),
                           ),
                         ),
                         Expanded(
